@@ -13,20 +13,36 @@ function App() {
 
   const handleJsonInputChange = (input) => {
     setJsonInput(input);
-    setErrorMessage('');
+    setErrorMessage(''); // Reset error message on new input
     setFilteredResponse(null); // Reset filtered response on new input
   };
 
   const handleSubmit = async () => {
     try {
       const parsedData = JSON.parse(jsonInput); // Validate JSON format
-      // Call backend API to process input
-      const response = await axios.post('http://localhost:5000/bfhl', parsedData);
-      setFilteredResponse(response.data);
+      // Check if it's an array
+      if (!Array.isArray(parsedData.data)) {
+        setErrorMessage('Input JSON must contain an array under the "data" key.');
+        return;
+      }
+  
+      const response = await axios.post('https://bfhl-backend-i7r9.onrender.com/bfhl', {
+        data: parsedData.data, // Send the data array from the input
+        category: selectedFilter, // Send the selected filter (category) to backend
+      });
+      
+  
+      if (response.data) {
+        setFilteredResponse(response.data); // Store the filtered data from the response
+      } else {
+        setErrorMessage('No data found for the selected filter.');
+      }
     } catch (error) {
-      setErrorMessage('Invalid JSON input.');
+      console.error('Error in handleSubmit:', error);
+      setErrorMessage('Invalid JSON input or error in the backend.');
     }
   };
+  
 
   const handleFilterChange = (filter) => {
     setSelectedFilter(filter); // Update selected filter based on dropdown choice
@@ -55,3 +71,4 @@ function App() {
 }
 
 export default App;
+
